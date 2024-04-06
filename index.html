@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, user-scalable=no">
+    <title>sinebender</title>
+<!--     
+    LINK TO TONE.JS-->
+    <script src="https://tonejs.github.io/build/Tone.js"></script>
+
+    <!--LINK TO JOSEFIN SANS FONT-->
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@100&display=swap" rel="stylesheet">
+
+    <!-- LINK TO CSS FILES -->
+    <link href="/header/header.css" rel="stylesheet" type="text/css">
+
+    <style>
+        body {background-color: black; overflow: "none";}
+        .button {display: block; padding-right: 0px; width: 90vw; height: 12vh; margin: 2vh; border-radius: 10px; background-color: hsl(106, 92%, 38%);}
+        .button1 {display: block; padding-right: 0px; width: 66.16vw; height: 10.3vh; margin: 2vh; border-radius: 10px; background-color: violet;}
+        .button2 {display: block; padding-right: 0px; width: 69.64vw; height: 10.3vh; margin: 2vh; border-radius: 10px; background-color: indigo;}
+        .button3 {display: block; padding-right: 0px; width: 73.31vw; height: 10.3vh; margin: 2vh; border-radius: 10px; background-color: blue;}
+        .button4 {display: block; padding-right: 0px; width: 77.16vw; height: 10.3vh; margin: 2vh; border-radius: 10px; background-color: green;}
+        .button5 {display: block; padding-right: 0px; width: 81.23vw; height: 10.3vh; margin: 2vh; border-radius: 10px; background-color: yellow;}
+        .button6 {display: block; padding-right: 0px; width: 85.5vw; height: 10.3vh; margin: 2vh; border-radius: 10px; background-color: orange;}
+        .button7 {display: block; padding-right: 0px; width: 90vw; height: 10.3vh; margin: 2vh; border-radius: 10px; background-color: red;}
+        .indicatorDot{display: block; width: 30px;height: 30px;background-color: grey;border-radius: 50%;position:fixed;z-index: 5;}
+        .permsbutton{
+            position: absolute;
+            top: 0;
+            right: 0;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: black;
+        }
+        .init{
+            color: white;
+            text-align: center;
+            margin-top: 45vh;
+        }
+        .noselect {
+            -webkit-touch-callout: none; /* iOS Safari */
+            -webkit-user-select: none; /* Safari */
+            -khtml-user-select: none; /* Konqueror HTML */
+            -moz-user-select: none; /* Old versions of Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
+        }
+    </style>
+    <script> 
+        var px = 50; // Position x and y
+        var py = 50;
+        var vx = 0.0; // Velocity x and y
+        var vy = 0.0;
+        var updateRate = 1/60; //Sensor refresh rate
+        var sensitivity = 3;
+    
+        var height = window.innerHeight;
+        var width = window.innerWidth;
+        console.log("Height = " + height);
+        console.log("Width = " + width);
+        
+        function sense(num) {
+            sensitivity = num;
+        }
+        
+        function clicked() {
+            document.getElementById("permsbutton").style.display = "none";
+            console.log("CLICKED");
+            if (Tone.context.state !== 'running') {
+                Tone.context.resume();
+                Tone.start();
+            }
+            Tone.start();
+            getAccel();
+        }        
+    
+        function getAccel(){
+            console.log("inside perms function");
+            DeviceMotionEvent.requestPermission().then(response => {
+                if (response == 'granted') {
+                    window.addEventListener('deviceorientation',(event) => {
+                        event.alpha = 0;
+                        rotation_degrees = event.alpha;
+                        xtilt = event.gamma;
+                        ytilt = event.beta;
+
+                        xtilt *= 100;
+                        xtilt = Math.floor(xtilt);
+                        xtilt /= 100;
+
+                        ytilt *= 100;
+                        ytilt = Math.floor(ytilt);
+                        ytilt /= 100;
+
+                        xtilt = Math.min(Math.max(xtilt, -20), 20);
+                        
+                        ytilt = Math.min(Math.min(ytilt, -20), 20);
+
+                        update();
+                    });
+                }
+            });
+            
+        }
+
+
+    </script>
+</head>
+<body>
+    <center><div class = "button1 noselect" id="key7"></div></center>
+    <center><div class = "button2 noselect" id="key6"></div></center>
+    <center><div class = "button3 noselect" id="key5"></div></center>
+    <center><div class = "button4 noselect" id="key4"></div></center>
+    <center><div class = "button5 noselect" id="key3"></div></center>
+    <center><div class = "button6 noselect" id="key2"></div></center>
+    <center><div class = "button7 noselect" id="key1"></div></center>
+
+    <!--<div class="indicatorDot noselect" style="left:30%; top:30%;"></div>-->
+
+    <div id="permsbutton" class="permsbutton" onclick="clicked()"><h1 class="init">initiate</h1></div>
+
+    <!-- LINK TO JS FILES-->
+    <script>var website = "sinebender";</script>
+    <script src="/header/header.js"></script>
+
+    <script>
+        var dot;
+        var roundedpy;
+        var roundedpx;
+        var axispy;
+        var axispx = 0;
+        var pxNEW;
+        var range = 4;
+
+
+        var key1 = document.getElementById("key1");
+        var key2 = document.getElementById("key2");
+        var key3 = document.getElementById("key3");
+        var key4 = document.getElementById("key4");
+        var key5 = document.getElementById("key5");
+        var key6 = document.getElementById("key6");
+        var key7 = document.getElementById("key7");
+
+        var colorTilt = 50;
+
+        const buttons = [key7, key6, key5, key4, key3, key2, key1];
+
+        var osc1pitch;
+        var osc2pitch;
+        var osc3pitch;
+        var osc4pitch;
+        var osc5pitch;
+        var osc6pitch;
+        var osc7pitch;
+        
+        key1.addEventListener("touchstart", () => {attack1(key1)});
+        key1.addEventListener("touchend", () => {release1(key1)});
+
+        key2.addEventListener("touchstart", () => {attack2(key2)});
+        key2.addEventListener("touchend", () => {release2(key2)});
+
+        key3.addEventListener("touchstart", () => {attack3(key3)});
+        key3.addEventListener("touchend", () => {release3(key3)});
+
+        key4.addEventListener("touchstart", () => {attack4(key4)});
+        key4.addEventListener("touchend", () => {release4(key4)});
+
+        key5.addEventListener("touchstart", () => {attack5(key5)});
+        key5.addEventListener("touchend", () => {release5(key5)});
+
+        key6.addEventListener("touchstart", () => {attack6(key6)});
+        key6.addEventListener("touchend", () => {release6(key6)});
+
+        key7.addEventListener("touchstart", () => {attack7(key7)});
+        key7.addEventListener("touchend", () => {release7(key7)});
+
+        const gainNode1 = new Tone.Gain(0).toDestination();
+        const osc1 = new Tone.Oscillator(440, "triangle").connect(gainNode1).start();
+
+        const gainNode2 = new Tone.Gain(0).toDestination();
+        const osc2 = new Tone.Oscillator(440, "triangle").connect(gainNode2).start();
+
+        const gainNode3 = new Tone.Gain(0).toDestination();
+        const osc3 = new Tone.Oscillator(440, "triangle").connect(gainNode3).start();
+
+        const gainNode4 = new Tone.Gain(0).toDestination();
+        const osc4 = new Tone.Oscillator(440, "triangle").connect(gainNode4).start();
+
+        const gainNode5 = new Tone.Gain(0).toDestination();
+        const osc5 = new Tone.Oscillator(440, "triangle").connect(gainNode5).start();
+
+        const gainNode6 = new Tone.Gain(0).toDestination();
+        const osc6 = new Tone.Oscillator(440, "triangle").connect(gainNode6).start();
+
+        const gainNode7 = new Tone.Gain(0).toDestination();
+        const osc7 = new Tone.Oscillator(440, "triangle").connect(gainNode7).start();
+
+        var flags = [0, 0, 0, 0, 0, 0];
+        
+
+        function attack1(keyNum) {flags[6] = 1; gainNode1.gain.rampTo(1, 0.08);}
+        function release1(keyNum) {flags[6] = 0; gainNode1.gain.rampTo(0, 0.8);}
+
+        function attack2(keyNum) {flags[5] = 1; gainNode2.gain.rampTo(1, 0.08);}
+        function release2(keyNum) {flags[5] = 0; gainNode2.gain.rampTo(0, 0.8);}
+
+        function attack3(keyNum) {flags[4] = 1; gainNode3.gain.rampTo(1, 0.08);}
+        function release3(keyNum) {flags[4] = 0; gainNode3.gain.rampTo(0, 0.8);}
+
+        function attack4(keyNum) {flags[3] = 1; gainNode4.gain.rampTo(1, 0.08);}
+        function release4(keyNum) {flags[3] = 0; gainNode4.gain.rampTo(0, 0.8);}
+
+        function attack5(keyNum) {flags[2] = 1; gainNode5.gain.rampTo(1, 0.08);}
+        function release5(keyNum) {flags[2] = 0; gainNode5.gain.rampTo(0, 0.8);}
+
+        function attack6(keyNum) {flags[1] = 1; gainNode6.gain.rampTo(1, 0.03);}
+        function release6(keyNum) {flags[1] = 0; gainNode6.gain.rampTo(0, 0.8);}
+
+        function attack7(keyNum) {flags[0] = 1; gainNode7.gain.rampTo(1, 0.03);}
+        function release7(keyNum) {flags[0] = 0; gainNode7.gain.rampTo(0, 0.8);}
+
+        ////////////////////////////////////////////////////////////////////////
+        // Create a reverb effect
+        const reverb = new Tone.Reverb({
+            decay: 1000, // Adjust decay time as needed
+            wet: 100 // Adjust wetness (mix) of the effect
+        }).toDestination(); // Connect the reverb effect to the audio output
+
+        // Connect oscillators to the reverb effect
+        gainNode1.connect(reverb);
+        gainNode2.connect(reverb);
+        gainNode3.connect(reverb);
+        gainNode4.connect(reverb);
+        gainNode5.connect(reverb);
+        gainNode6.connect(reverb);
+        gainNode7.connect(reverb);
+        /////////////////////////////////////////////////////////////////////////////
+        function update() {
+
+            xtiltPOS = xtilt + 20;
+            /*
+            dot = document.getElementsByClassName("indicatorDot")[0];
+            dot.style.left = xtiltPOS + "%";
+            */
+
+            // colorTilt = xtiltPOS;
+            // for (let i = 0; i < buttons.length; i++) {
+            //     if (flags[i] == 0) {
+            //         buttons[i].style.backgroundColor = "hsl(260, " + colorTilt + "%, 50%)";
+            //     } else {
+            //         buttons[i].style.backgroundColor = 'white';
+            //     }
+            // }
+            const hues = [0, 40, 60, 120, 240, 280, 320];
+
+            // for (let i = 0; i < buttons.length; i++) {
+            //     let color;
+            //     if (flags[i] == 0) {
+            //         // Calculate hue index based on xtilt position
+            //         let hueIndex = Math.floor((xtiltPOS + 20) / 40); // Assuming 40 degrees for each color
+            //         // Ensure hue index stays within valid range
+            //         hueIndex = hueIndex < 0 ? 0 : (hueIndex >= hues.length ? hues.length - 1 : hueIndex);
+            //         // Get hue value based on index
+            //         let hue = hues[hueIndex];
+            //         // Set the button's background color
+            //         color = `hsl(${hue}, 92%, 38%)`;
+            //     } else {
+            //         // If the button is pressed, set background color to white
+            //         color = 'white';
+            //     }
+            //     buttons[i].style.backgroundColor = color;
+            // }
+   
+            for (let i = 0; i < buttons.length; i++) {
+                buttons[i].addEventListener("touchstart", () => { buttons[i].style.backgroundColor = 'white' });
+                buttons[i].addEventListener("touchend", () => { buttons[i].style.backgroundColor = '' }); // Resets to original color
+            }
+            osc1pitch = xtilt + 659.3;
+            osc2pitch = xtilt + 784;
+            osc3pitch = xtilt + 880;
+            osc4pitch = xtilt + 987.8;
+            osc5pitch = xtilt + 1175;
+            osc6pitch = xtilt + 1319;
+            osc7pitch = xtilt + 1568;
+
+            osc1.frequency.value = osc1pitch;
+            osc2.frequency.value = osc2pitch;
+            osc3.frequency.value = osc3pitch;
+            osc4.frequency.value = osc4pitch;
+            osc5.frequency.value = osc5pitch;
+            osc6.frequency.value = osc6pitch;
+            osc7.frequency.value = osc7pitch;
+
+            // const maxYTilt = 0;
+            // const maxVolume = -40;
+            // const minVolume = -80;
+
+            // const volumeRange = maxVolume - minVolume;
+            // const scaledVolume = (maxYTilt - ytilt) / maxYTilt * volumeRange + minVolume;
+
+            // osc1vol = maxYTilt - ytilt;
+            // osc2vol = maxYTilt - ytilt;
+            // osc3vol = maxYTilt - ytilt;
+            // osc4vol = maxYTilt - ytilt;
+            // osc5vol = maxYTilt - ytilt;
+            // osc6vol = maxYTilt - ytilt;
+
+
+            osc1vol = -(ytilt + 20);
+            osc2vol = -(ytilt + 20);
+            osc3vol = -(ytilt + 20);
+            osc4vol = -(ytilt + 20);
+            osc5vol = -(ytilt + 20);
+            osc6vol = -(ytilt + 20);
+            osc7vol = -(ytilt + 20);
+            osc1.volume.value = osc1vol
+            osc2.volume.value = osc2vol
+            osc3.volume.value = osc3vol
+            osc4.volume.value = osc4vol
+            osc5.volume.value = osc5vol
+            osc6.volume.value = osc6vol
+            osc7.volume.value = osc7vol
+
+            // osc1.volume.value = scaledVolume
+            // osc2.volume.value = scaledVolume
+            // osc3.volume.value = scaledVolume
+            // osc4.volume.value = scaledVolume
+            // osc5.volume.value = scaledVolume
+            // osc6.volume.value = scaledVolume
+
+            //document.getElementById("key1").innerHTML = "X degrees = " + xtilt;
+        }
+        /////////////////////////////////////////////////////////////////////////////
+
+    </script>
+</body>
+</html>
